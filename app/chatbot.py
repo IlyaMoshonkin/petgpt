@@ -30,11 +30,11 @@ def main():
     # Загрузка логотипа
     logo = Image.open(logo_image)
     # Изменение размера логотипа
-    resized_logo = logo.resize((100, 100))
-    st.set_page_config(page_title="PetPalGPT", page_icon="📖")   
+    resized_logo = logo.resize((200, 150))
+    st.set_page_config(page_title="PetPalsGPT", page_icon="📖")   
     # Отображаем лого измененного небольшого размера
     st.image(resized_logo)
-    st.title('📖 PetPalGPT')
+    st.title('📖 PetPalsGPT')
     """
     Чатбот на базе GPT, который запоминает контекст беседы. Чтобы "сбросить" контекст обновите страницу браузера.\n
     Вы можете выбрать какую модель использовать.
@@ -97,18 +97,21 @@ def main():
     #   "YandexGPT Lite": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/latest",
     #   "YandexGPT Lite RC": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/rc",
     #   "YandexGPT Pro": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt/latest",
-      "GigaChat LIte": "GigaChat",
-      "GigaChat Lite+": "GigaChat-Plus",
+    #   "GigaChat LIte": "GigaChat",
+    #   "GigaChat Lite+": "GigaChat-Plus",
       "GigaChat Pro": "GigaChat-Pro",
     }
     index_model = 0
-    selected_model = st.sidebar.radio("Выберите модель для работы:", model_dict.keys(), index=index_model, key="index")      
+    # selected_model = st.sidebar.radio("Выберите модель для работы:", model_dict.keys(), index=index_model, key="index" ) 
+    selected_model = "GigaChat Pro"
     
     # yagpt_prompt = st.sidebar.text_input("Промпт-инструкция для YaGPT")
     # Добавляем виджет для выбора опции
     prompt_option = st.sidebar.selectbox(
         'Выберите какой системный промпт использовать',
-        ('По умолчанию', 'Задать самостоятельно')
+        ('По умолчанию', 
+         #'Задать самостоятельно'
+         )
     )
     default_prompt = main_promt
     # Если выбрана опция "Задать самостоятельно", показываем поле для ввода промпта
@@ -123,7 +126,8 @@ def main():
     if len(custom_prompt)==0: custom_prompt = default_prompt
 
 
-    temperature = st.sidebar.slider("Степень креативности (температура)", 0.0, 1.0, 0.6)
+    # temperature = st.sidebar.slider("Степень креативности (температура)", 0.0, 1.0, 0.6)
+    temperature = 0.3
     # yagpt_max_tokens = st.sidebar.slider("Размер контекстного окна (в [токенах](https://cloud.yandex.ru/ru/docs/yandexgpt/concepts/tokens))", 200, 8000, 5000)
 
     def history_reset_function():
@@ -142,7 +146,7 @@ def main():
                          )
         embeddings = GigaChatEmbeddings(verify_ssl_certs=False, scope="GIGACHAT_API_CORP")
         index = FAISS.load_local("app/index/index_chunk_1000-chars_embeddings_giga_chat", embeddings, allow_dangerous_deserialization=True)
-        retriever = index.as_retriever(search_kwargs = {"k": 5})
+        retriever = index.as_retriever(search_kwargs = {"k": 10})
     else:
         model_uri = model_dict[selected_model]
         model = ChatYandexGPT(
@@ -155,7 +159,7 @@ def main():
     ("system", custom_prompt),
     MessagesPlaceholder(variable_name="history"),
     ("human", """
-    Пожалуйста, посмотри на текст ниже и ответь на вопрос, используя информацию из этого текста, а также учитывая предыдущий контекст разговора. Не выдумывай информацию.
+    Пожалуйста, посмотри на текст ниже и ответь на вопрос, используя информацию из этого текста, релевантную вопросу, а также учитывая предыдущий контекст разговора. Не выдумывай информацию.
     
     Текст:
     -----
