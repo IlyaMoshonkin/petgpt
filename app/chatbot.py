@@ -87,11 +87,11 @@ def main():
     gigachat_credintials = st.secrets["GIGACHAT_CREDENTIALS"]
      
 
-    with st.sidebar:
-        st.markdown('''
-            ## Дополнительные настройки
-            Можно выбрать молдель, степень креативности и системный промпт
-            ''')
+    # with st.sidebar:
+    #     st.markdown('''
+    #         ## Дополнительные настройки
+    #         Можно выбрать модель, степень креативности и системный промпт
+    #         ''')
 
     model_dict = {
     #   "YandexGPT Lite": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/latest",
