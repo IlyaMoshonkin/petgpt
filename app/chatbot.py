@@ -44,7 +44,7 @@ def main():
     # вводить все credentials в графическом интерфейсе слева
     # Sidebar contents
     with st.sidebar:
-        st.title('\U0001F917\U0001F4AC PetPalGPT чатбот')
+        st.title('\U0001F917\U0001F4AC PetPalsGPT чатбот')
         st.markdown('''
         ## О программе
         Данный чатбот использует следующие компоненты:
