@@ -67,26 +67,34 @@ def main():
     # load_dotenv()
     yc_folder_id = st.secrets.get("YC_FOLDER_ID")
 
-    if not yc_folder_id:
-        yc_folder_id = st.sidebar.text_input("YC folder ID", type="password")
-        if not yc_folder_id:
-            st.info("Укажите [YC folder ID](https://cloud.yandex.ru/ru/docs/yandexgpt/quickstart#yandex-account_1) для запуска чатбота")
-            st.stop()
+    # if not yc_folder_id:
+    #     yc_folder_id = st.sidebar.text_input("YC folder ID", type="password")
+    #     if not yc_folder_id:
+    #         st.info("Укажите [YC folder ID](https://cloud.yandex.ru/ru/docs/yandexgpt/quickstart#yandex-account_1) для запуска чатбота")
+    #         st.stop()
 
     
         
-    yc_iam_token = st.sidebar.text_input("YC IAM token", type="password")
-    if not yc_iam_token:
-        st.info("Укажите [YC IAM token](https://cloud.yandex.ru/ru/docs/yandexgpt/quickstart#yandex-account_1) для запуска чатбота")
+    password = st.sidebar.text_input("password", type="password")
+    if not password:
+        st.info("Укажите пароль")
         st.stop()
-        
+    if password != st.secrets.get("password"):
+        st.info("Неверный пароль")
+        st.stop()
     
-    # yagpt_folder_id = st.secrets["YC_FOLDER_ID"]
+       # yc_iam_token = st.sidebar.text_input("YC IAM token", type="password")
+    # if not yc_iam_token:
+    #     st.info("Укажите [YC IAM token](https://cloud.yandex.ru/ru/docs/yandexgpt/quickstart#yandex-account_1) для запуска чатбота")
+    #     st.stop()
+    
+    # yc_folder_id = st.secrets["YC_FOLDER_ID"]
     # yc_service_account_id = st.secrets["YC_SERVICE_ACCOUNT_ID"]
     # yc_key_id = st.secrets["YC_KEY_ID"]
     # yc_private_key = st.secrets["YC_PRIVATE_KEY"]
     # yc_private_key = load_private_key(".streamlit/private_key.pem", "your_password")
     # yc_iam_token = generate_token('.streamlit/sa-gen-petpals-gpt-00001.json')
+    yc_iam_token = st.secrets["YC_IAM_TOKEN"]
     gigachat_credintials = st.secrets["GIGACHAT_CREDENTIALS"]
      
 
