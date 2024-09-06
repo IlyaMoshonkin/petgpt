@@ -5,12 +5,15 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_community.chat_models import ChatYandexGPT
-from langchain_community.embeddings import GigaChatEmbeddings
+from langchain_community.embeddings import GigaChatEmbeddings, YandexGPTEmbeddings
 from langchain_community.chat_models import GigaChat
 from langchain_community.vectorstores import FAISS
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough, RunnableLambda
+from langchain.globals import set_debug
+
+# set_debug(True)
 
 from promts import main_promt
 
@@ -23,7 +26,7 @@ import os
 # это основная функция, которая запускает приложение streamlit
 def main():
     # Загрузка логотипа компании
-    logo_image = 'app/images/logo.png'  # Путь к изображению логотипа
+    logo_image = 'app/images/logo-2.jpg'  # Путь к изображению логотипа
 
     # # # Отображение логотипа в основной части приложения
     from PIL import Image
@@ -72,10 +75,10 @@ def main():
 
     
         
-    # iam_token = st.sidebar.text_input("YC IAM token", type="password")
-    # if not iam_token:
-    #     st.info("Укажите [YC IAM token](https://cloud.yandex.ru/ru/docs/yandexgpt/quickstart#yandex-account_1) для запуска чатбота")
-    #     st.stop()
+    yc_iam_token = st.sidebar.text_input("YC IAM token", type="password")
+    if not yc_iam_token:
+        st.info("Укажите [YC IAM token](https://cloud.yandex.ru/ru/docs/yandexgpt/quickstart#yandex-account_1) для запуска чатбота")
+        st.stop()
         
     
     # yagpt_folder_id = st.secrets["YC_FOLDER_ID"]
@@ -94,37 +97,37 @@ def main():
     #         ''')
 
     model_dict = {
-    #   "YandexGPT Lite": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/latest",
-    #   "YandexGPT Lite RC": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/rc",
-    #   "YandexGPT Pro": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt/latest",
-    #   "GigaChat LIte": "GigaChat",
-    #   "GigaChat Lite+": "GigaChat-Plus",
+      "YandexGPT Lite": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/latest",
+      "YandexGPT Lite RC": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt-lite/rc",
+      "YandexGPT Pro": "gpt://b1gr0nm9o4sp7b51etoh/yandexgpt/latest",
+      "GigaChat LIte": "GigaChat",
+      "GigaChat Lite+": "GigaChat-Plus",
       "GigaChat Pro": "GigaChat-Pro",
     }
     index_model = 0
     # selected_model = st.sidebar.radio("Выберите модель для работы:", model_dict.keys(), index=index_model, key="index" ) 
-    selected_model = "GigaChat Pro"
+    selected_model = "YandexGPT Pro"
     
     # yagpt_prompt = st.sidebar.text_input("Промпт-инструкция для YaGPT")
     # Добавляем виджет для выбора опции
-    prompt_option = st.sidebar.selectbox(
-        'Выберите какой системный промпт использовать',
-        ('По умолчанию', 
-         #'Задать самостоятельно'
-         )
-    )
+    # prompt_option = st.sidebar.selectbox(
+    #     'Выберите какой системный промпт использовать',
+    #     ('По умолчанию', 
+    #      #'Задать самостоятельно'
+    #      )
+    
     default_prompt = main_promt
-    # Если выбрана опция "Задать самостоятельно", показываем поле для ввода промпта
-    if prompt_option == 'Задать самостоятельно':
-        custom_prompt = st.sidebar.text_input('Введите пользовательский промпт:')
-    else:
-        custom_prompt = default_prompt
-        # st.sidebar.write(custom_prompt)
-        with st.sidebar:
-            st.code(custom_prompt)
-    # Если выбрали "задать самостоятельно" и не задали, то берем дефолтный промпт
-    if len(custom_prompt)==0: custom_prompt = default_prompt
-
+    # # Если выбрана опция "Задать самостоятельно", показываем поле для ввода промпта
+    # if prompt_option == 'Задать самостоятельно':
+    #     custom_prompt = st.sidebar.text_input('Введите пользовательский промпт:')
+    # else:
+    #     custom_prompt = default_prompt
+    #     # st.sidebar.write(custom_prompt)
+    #     with st.sidebar:
+    #         st.code(custom_prompt)
+    # # Если выбрали "задать самостоятельно" и не задали, то берем дефолтный промпт
+    # if len(custom_prompt)==0: custom_prompt = default_prompt
+    custom_prompt = default_prompt
 
     # temperature = st.sidebar.slider("Степень креативности (температура)", 0.0, 1.0, 0.6)
     temperature = 0.3
@@ -146,14 +149,24 @@ def main():
                          )
         embeddings = GigaChatEmbeddings(verify_ssl_certs=False, scope="GIGACHAT_API_CORP")
         index = FAISS.load_local("app/index/index_chunk_1000-chars_embeddings_giga_chat", embeddings, allow_dangerous_deserialization=True)
-        retriever = index.as_retriever(search_kwargs = {"k": 10})
     else:
         model_uri = model_dict[selected_model]
         model = ChatYandexGPT(
-                            iam_token=yc_iam_token,
-                            model_uri=model_uri, temperature = temperature, #max_tokens = yagpt_max_tokens
-                            )
-        
+            iam_token=yc_iam_token,
+            model_uri=model_uri,
+            temperature=temperature,  
+            # max_tokens = yagpt_max_tokens
+        )
+        emb_model_uri = "emb://b1gr0nm9o4sp7b51etoh/text-search-doc/latest"
+        embeddings = YandexGPTEmbeddings(
+            iam_token=yc_iam_token, model_uri=emb_model_uri, folder_id=yc_folder_id
+        )
+        index = FAISS.load_local(
+            "app/index/index_chunk_1000-chars_embeddings_ya-text-search-doc-v2",
+            embeddings,
+            allow_dangerous_deserialization=True,
+        )
+
     
     combined_prompt = ChatPromptTemplate.from_messages([
     ("system", custom_prompt),
@@ -186,6 +199,8 @@ def main():
     
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
+    
+    retriever = index.as_retriever(search_kwargs = {"k": 10})
 
     # Создаем цепочку
     chain = (
